@@ -100,13 +100,18 @@ class AdamGnT(Optimizer):
                 else:
                     denom = exp_avg_sq.sqrt().add_(group['eps'])
 
-                bias_correction1 = 1 - beta1 ** state['step']
-                bias_correction = 1 - beta2 ** state['step']
-                # step_size = group['lr'] * math.sqrt(bias_correction2) / bias_correction1
-                bias_correction.sqrt().div_(bias_correction1)
+                # Standard Adam bias corrections (per-parameter element-wise)
+                # Use torch.pow to support tensor-valued step counters
+                beta1_t = torch.tensor(beta1, device=p.data.device)
+                beta2_t = torch.tensor(beta2, device=p.data.device)
+                bias_correction1 = 1 - torch.pow(beta1_t, state['step'])
+                bias_correction2 = 1 - torch.pow(beta2_t, state['step'])
+                # Compute element-wise step size tensor
+                step_size = group['lr'] * (bias_correction2.sqrt() / bias_correction1)
 
-                denom.div_(exp_avg)
+                # Standard Adam update: p = p - step_size * exp_avg / denom
+                update = exp_avg / denom
+                update.mul_(step_size)
+                p.data.add_(-update)
 
-                # p.data.addcdiv_(-step_size, exp_avg, denom)
-                p.data.addcdiv_(bias_correction, denom, value=-group['lr'])
         return loss
