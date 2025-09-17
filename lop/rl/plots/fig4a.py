@@ -85,7 +85,7 @@ def main():
         if 'label' not in cfgs[-1].keys(): cfgs[-1]['label'] = ''
 
     # num_runs = 30
-    num_runs = 20
+    num_runs = 6
     runs = [i + 0 for i in range(0, num_runs)]
     m = 250 * 1000
     ts = 100 * 1000 * 1000
@@ -117,7 +117,7 @@ def main():
     ax.set_ylim(yticks[0], yticks[-1])
 
     ax.yaxis.grid()
-
+    plt.legend()
     plt.savefig('fig4a.png', bbox_inches='tight', dpi=250)
     plt.close()
 
