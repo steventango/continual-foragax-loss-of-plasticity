@@ -139,7 +139,7 @@ def main():
         env = gym.make(cfg["env_name"], friction=new_friction, xml_file=xml_file)
         print(f"Initial friction: {friction:.6f}")
     elif "Foragax" in cfg["env_name"]:
-        env = make_foragax_gym_env(cfg["env_name"])
+        env = make_foragax_gym_env(cfg["env_name"], aperture_size=cfg["env_aperture_size"])
     else:
         env = gym.make(cfg['env_name'])
     env.name = None
