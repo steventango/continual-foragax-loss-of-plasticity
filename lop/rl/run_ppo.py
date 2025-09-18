@@ -275,25 +275,6 @@ def main():
         a = 1e-3
         ret = (1-a) * ret + a * r
         pbar.set_description(f"{ret:0.2f}")
-        if done:
-            # print(step, "(", epi_steps, ") {0:.2f}".format(ret))
-            rets.append(ret)
-            termination_steps.append(step)
-            ret = 0
-            epi_steps = 0
-            if cfg['env_name'] in ['SlipperyAnt-v2', 'SlipperyAnt-v3'] and step - previous_change_time > cfg['change_time']:
-                previous_change_time = step
-                env.close()
-                friction_number += 1
-                new_friction = frictions[seed][friction_number]
-                print(f'{step}: change friction to {new_friction:.6f}')
-                env.close()
-                env = gym.make(cfg['env_name'], friction=new_friction, xml_file=xml_file)
-                env.name = None
-                agent.env = env
-            o, _ = env.reset()
-            if "Foragax" in cfg["env_name"]:
-                pos.append(env.unwrapped.env_state.pos)
 
         if step % 100_000 == 0 or step == n_steps-1:
             # Save checkpoint
