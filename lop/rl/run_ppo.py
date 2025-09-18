@@ -1,4 +1,5 @@
 import os
+from tqdm import tqdm
 import yaml
 import pickle
 import argparse
@@ -240,7 +241,8 @@ def main():
     o, _ = env.reset(seed=seed)
     print('start_step:', start_step)
     # Interaction loop
-    for step in range(start_step, n_steps):
+    pbar = tqdm(range(start_step, n_steps))
+    for step in pbar:
         a, logp, dist, new_features = agent.get_action(o)
         op, r, done, done, infos = env.step(a)
         if "Foragax" in cfg["env_name"]:
@@ -270,7 +272,9 @@ def main():
                     short_term_feature_activity[step % 1000, i] = new_features[i]
 
         o = op
-        ret += r
+        a = 1e-3
+        ret = (1-a) * ret + a * r
+        pbar.set_description(f"{ret:0.2f}")
         if done:
             # print(step, "(", epi_steps, ") {0:.2f}".format(ret))
             rets.append(ret)
