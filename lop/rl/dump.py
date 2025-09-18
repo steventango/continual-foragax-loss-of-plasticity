@@ -25,7 +25,6 @@ def main():
         Path("data/foragax").rglob("*.log"),
         Path("data/foragax-sweep").rglob("*.log"),
     ))
-    print(paths)
 
     for path in paths:
         get_param_performance(path)
