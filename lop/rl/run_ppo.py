@@ -291,7 +291,7 @@ def main():
             if "Foragax" in cfg["env_name"]:
                 pos.append(env.unwrapped.env_state.pos)
 
-        if step % (n_steps//100) == 0 or step == n_steps-1:
+        if step % 100_000 == 0 or step == n_steps-1:
             # Save checkpoint
             save_checkpoint(cfg, step, agent.learner)
             # Save data logs
