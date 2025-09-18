@@ -140,6 +140,7 @@ def main():
     else:
         env = gym.make(cfg['env_name'])
     env.name = None
+    discrete_actions = isinstance(env.action_space, gym.spaces.Discrete)
 
     # Set random seeds
     np.random.seed(seed)
@@ -152,11 +153,15 @@ def main():
     opt = Adam
     num_layers = len(cfg['h_dim'])
     o_dim = env.observation_space.shape[0]
-    a_dim = env.action_space.shape[0]
-    pol = MLPPolicy(o_dim, a_dim, act_type=cfg['act_type'], h_dim=cfg['h_dim'], device=device, init=cfg['init'])
+    if discrete_actions:
+        a_dim = env.action_space.n
+    else:
+        a_dim = env.action_space.shape[0]
+    pol = MLPPolicy(o_dim, a_dim, act_type=cfg['act_type'], h_dim=cfg['h_dim'], device=device, init=cfg['init'],
+                    discrete_actions=discrete_actions)
     vf = MLPVF(o_dim, act_type=cfg['act_type'], h_dim=cfg['h_dim'], device=device, init=cfg['init'])
     np.random.set_state(random_state)
-    buf = Buffer(o_dim, a_dim, cfg['bs'], device=device)
+    buf = Buffer(o_dim, a_dim if not discrete_actions else 1, cfg['bs'], device=device)
 
     learner = PPO(pol, buf, cfg['lr'], g=cfg['g'], vf=vf, lm=cfg['lm'], Opt=opt,
                   u_epi_up=cfg['u_epi_ups'], device=device, n_itrs=cfg['n_itrs'], n_slices=cfg['n_slices'],

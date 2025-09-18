@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from torch.distributions import Normal
+from torch.distributions import Categorical, Normal
 
 from lop.utils.miscellaneous import net_init, fc_body, register_hook, kaiming_init, xavier_init, lecun_init, gaussian_init
 
@@ -16,7 +16,10 @@ class Policy(object):
         with torch.no_grad():
             dist = self.dist(x, to_log_features=to_log_features)
             action = dist.sample()
-            lprob = dist.log_prob(action).sum(-1, keepdim=True)
+            if self.discrete_actions:
+                lprob = dist.log_prob(action).unsqueeze(-1)
+            else:
+                lprob = dist.log_prob(action).sum(-1, keepdim=True)
         return action, lprob, dist
 
     def dist(self, x, to_log_features):
@@ -34,16 +37,17 @@ class Policy(object):
 
 class MLPPolicy(Policy, nn.Module):
     def __init__(self, o_dim, a_dim, act_type='Tanh', h_dim=(50,), log_std=0, device='cpu', init='kaiming', bias=True,
-                 std_dev=1e-1, output_tanh=False):
+                 std_dev=1e-1, output_tanh=False, discrete_actions=False):
         super().__init__()
         self.act_type = act_type
         self.device = device
+        self.discrete_actions = discrete_actions
         mean_net = fc_body(act_type, o_dim, h_dim, bias=bias)
         if len(h_dim) > 0:
             mean_net.append(nn.Linear(h_dim[-1], a_dim, bias=bias))
         else:
             mean_net.append(nn.Linear(o_dim, a_dim, bias=bias))
-        if output_tanh:
+        if not self.discrete_actions and output_tanh:
             mean_net.append(nn.Tanh())
         self.mean_net = nn.Sequential(*mean_net)
         if init == 'kaiming':
@@ -56,9 +60,9 @@ class MLPPolicy(Policy, nn.Module):
             net_init(self.mean_net)
         elif init == 'gaussian':
             gaussian_init(self.mean_net, std_dev=std_dev)
-        self.log_std = nn.Parameter(torch.ones(a_dim) * log_std)
+        if not self.discrete_actions:
+            self.log_std = nn.Parameter(torch.ones(a_dim) * log_std)
         self.to(device)
-        self.discrete_actions = False
         # Setup feature logging
         self.setup_feature_logging(h_dim=h_dim)
 
@@ -91,18 +95,29 @@ class MLPPolicy(Policy, nn.Module):
         self.to_log_features = to_log_features
         action_mean = self.mean_net(x)
         self.to_log_features = False
+        if self.discrete_actions:
+            return Categorical(logits=action_mean)
         return Normal(action_mean, torch.exp(self.log_std))
 
     def dist_to(self, dist, to_device='cpu'):
-        dist.loc.to(to_device)
-        dist.scale.to(to_device)
+        if self.discrete_actions:
+            dist.logits.to(to_device)
+        else:
+            dist.loc.to(to_device)
+            dist.scale.to(to_device)
         return dist
 
     def dist_stack(self, dists, device='cpu'):
+        if self.discrete_actions:
+            return Categorical(
+                logits=torch.cat(tuple([dists[i].logits for i in range(len(dists))])).to(device)
+            )
         return Normal(
             torch.cat(tuple([dists[i].loc for i in range(len(dists))])).to(device),
             torch.cat(tuple([dists[i].scale for i in range(len(dists))])).to(device)
         )
 
     def dist_index(self, dist, ind):
+        if self.discrete_actions:
+            return Categorical(logits=dist.logits[ind])
         return Normal(dist.loc[ind], dist.scale[ind])
