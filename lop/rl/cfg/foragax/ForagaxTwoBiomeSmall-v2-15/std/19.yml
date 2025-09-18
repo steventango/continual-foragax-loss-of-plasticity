@@ -1,7 +1,7 @@
 act_type: Tanh
 bs: 4096
 clip_eps: 0.2
-dir: data/foragax-sweep/std/
+dir: data/foragax/std/
 env_aperture_size: 15
 env_name: ForagaxTwoBiomeSmall-v2
 g: 0.99
