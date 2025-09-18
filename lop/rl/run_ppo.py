@@ -21,10 +21,13 @@ from lop.utils.miscellaneous import compute_matrix_rank_summaries
 
 def save_data(cfg, rets, termination_steps,
               pol_features_activity, stable_rank, mu, pol_weights, val_weights,
-              action_probs=None, weight_change=[], friction=-1.0, num_updates=0, previous_change_time=0):
+              action_probs=None, weight_change=[], friction=-1.0, num_updates=0, previous_change_time=0,
+              rewards=None, pos=None):
     data_dict = {
         'rets': np.array(rets),
         'termination_steps': np.array(termination_steps),
+        'rewards': np.array(rewards),
+        'pos': np.array(pos),
         'pol_features_activity': pol_features_activity,
         'stable_rank': stable_rank,
         'action_output': mu,
@@ -196,6 +199,8 @@ def main():
                 pass
         rets = data_dict['rets']
         termination_steps = data_dict['termination_steps']
+        rewards = data_dict.get('rewards', [])
+        pos = data_dict.get('pos', [])
         pol_features_activity = data_dict['pol_features_activity']
         stable_rank = data_dict['stable_rank']
         if 'pol_features_activity' in to_log:
@@ -216,7 +221,7 @@ def main():
     else:
         num_updates = 0
         previous_change_time = 0
-        rets, termination_steps = [], []
+        rets, termination_steps, rewards, pos = [], [], [], []
         mu, weight_change, pol_features_activity, stable_rank, pol_weights, val_weights = [], [], [], [], [], []
         if 'mu' in to_log:
             mu = np.ones(size=(n_steps, a_dim))
@@ -238,11 +243,14 @@ def main():
     for step in range(start_step, n_steps):
         a, logp, dist, new_features = agent.get_action(o)
         op, r, done, done, infos = env.step(a)
+        if "Foragax" in cfg["env_name"]:
+            pos.append(env.unwrapped.env_state.pos)
         epi_steps += 1
         op_ = op
         val_logs = agent.log_update(o, a, r, op_, logp, dist, done)
         # Logging
         with torch.no_grad():
+            rewards.append(r)
             if 'weight_change' in to_log and 'weight_change' in val_logs.keys(): weight_change.append(val_logs['weight_change'])
             if 'mu' in to_log: mu[step] = a
             if step % 1000 == 0:
@@ -280,6 +288,8 @@ def main():
                 env.name = None
                 agent.env = env
             o, _ = env.reset()
+            if "Foragax" in cfg["env_name"]:
+                pos.append(env.unwrapped.env_state.pos)
 
         if step % (n_steps//100) == 0 or step == n_steps-1:
             # Save checkpoint
@@ -288,7 +298,7 @@ def main():
             save_data(cfg=cfg, rets=rets, termination_steps=termination_steps,
                       pol_features_activity=pol_features_activity, stable_rank=stable_rank, mu=mu, pol_weights=pol_weights,
                       val_weights=val_weights, weight_change=weight_change, friction=friction,
-                      num_updates=num_updates, previous_change_time=previous_change_time)
+                      num_updates=num_updates, previous_change_time=previous_change_time, rewards=rewards, pos=pos)
 
     with open(cfg['done_path'], 'w') as f:
         f.write('All done!')
