@@ -11,6 +11,7 @@ from torch.optim import Adam
 
 import lop.envs
 from lop.algos.rl.buffer import Buffer
+from lop.envs.foragax_env import make_foragax_gym_env
 from lop.nets.policies import MLPPolicy
 from lop.nets.valuefs import MLPVF
 from lop.algos.rl.agent import Agent
@@ -102,7 +103,7 @@ def main():
     cfg.setdefault('perturb_scale', 0)
     cfg['n_steps'] = int(float(cfg['n_steps']))
     cfg['perturb_scale'] = float(cfg['perturb_scale'])
-    n_steps = cfg['n_steps']    
+    n_steps = cfg['n_steps']
 
     # Set default values for CBP
     cfg.setdefault('mt', 10000)
@@ -132,8 +133,10 @@ def main():
 
         if friction < 0: # If no saved friction, use the default value 1.0
             friction = 1.0
-        env = gym.make(cfg['env_name'], friction=new_friction, xml_file=xml_file)
-        print(f'Initial friction: {friction:.6f}')
+        env = gym.make(cfg["env_name"], friction=new_friction, xml_file=xml_file)
+        print(f"Initial friction: {friction:.6f}")
+    elif "Foragax" in cfg["env_name"]:
+        env = make_foragax_gym_env(cfg["env_name"])
     else:
         env = gym.make(cfg['env_name'])
     env.name = None
@@ -144,7 +147,7 @@ def main():
     torch_seed = np.random.randint(1, 2 ** 31 - 1)
     torch.manual_seed(torch_seed)
     torch.cuda.manual_seed_all(torch_seed)
-    
+
     # Initialize algorithm
     opt = Adam
     num_layers = len(cfg['h_dim'])
@@ -175,7 +178,7 @@ def main():
         start_step, agent.learner = load_checkpoint(cfg, device, agent.learner)
     else:
         start_step = 0
-    
+
     # Initialize log
     if os.path.exists(cfg['log_path']):
         data_dict = load_data(cfg)
@@ -224,7 +227,7 @@ def main():
 
     ret = 0
     epi_steps = 0
-    o = env.reset()
+    o = env.reset(seed=seed)
     print('start_step:', start_step)
     # Interaction loop
     for step in range(start_step, n_steps):
