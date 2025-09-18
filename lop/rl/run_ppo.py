@@ -227,12 +227,12 @@ def main():
 
     ret = 0
     epi_steps = 0
-    o = env.reset(seed=seed)
+    o, _ = env.reset(seed=seed)
     print('start_step:', start_step)
     # Interaction loop
     for step in range(start_step, n_steps):
         a, logp, dist, new_features = agent.get_action(o)
-        op, r, done, infos = env.step(a)
+        op, r, done, done, infos = env.step(a)
         epi_steps += 1
         op_ = op
         val_logs = agent.log_update(o, a, r, op_, logp, dist, done)
@@ -274,7 +274,7 @@ def main():
                 env = gym.make(cfg['env_name'], friction=new_friction, xml_file=xml_file)
                 env.name = None
                 agent.env = env
-            o = env.reset()
+            o, _ = env.reset()
 
         if step % (n_steps//100) == 0 or step == n_steps-1:
             # Save checkpoint
