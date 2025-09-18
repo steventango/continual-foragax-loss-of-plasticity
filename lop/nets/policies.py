@@ -87,7 +87,10 @@ class MLPPolicy(Policy, nn.Module):
 
     def logp_dist(self, x, a, to_log_features=False):
         dist = self.dist(x, to_log_features=to_log_features)
-        lprob = dist.log_prob(torch.as_tensor(a, device=self.device)).sum(1, keepdim=True)
+        if self.discrete_actions:
+            lprob = dist.log_prob(torch.as_tensor(a, device=self.device).squeeze(-1)).unsqueeze(-1)
+        else:
+            lprob = dist.log_prob(torch.as_tensor(a, device=self.device)).sum(1, keepdim=True)
         return lprob, dist
 
     def dist(self, x, to_log_features=False):
