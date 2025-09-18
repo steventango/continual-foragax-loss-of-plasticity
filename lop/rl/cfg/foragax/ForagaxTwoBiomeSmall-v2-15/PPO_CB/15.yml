@@ -1,0 +1,33 @@
+act_type: Tanh
+beta_1: 0.99
+beta_2: 0.99
+bs: 4096
+clip_eps: 0.2
+dir: data/foragax/ForagaxTwoBiomeSmall-v2-15/PPO_CB/
+env_aperture_size: 15
+env_name: ForagaxTwoBiomeSmall-v2
+g: 0.99
+h_dim:
+- 64
+- 64
+label: CBP
+lm: 0.8
+lr: 0.001
+mt: 10000
+n_itrs: 4
+n_slices: 32
+n_steps: 1e6
+ob_norm: 0
+rew_norm: 0
+rr: 1e-4
+seed: 15
+to_log:
+- pol_features_activity
+- pol_weights
+- val_weights
+- stable_rank
+u_adv_scl: 1
+u_epi_ups: 0
+util_type_pol: contribution
+util_type_val: contribution
+wd: 1e-4
