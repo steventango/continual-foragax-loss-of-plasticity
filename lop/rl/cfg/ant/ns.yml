@@ -1,6 +1,6 @@
 env_name: 'Ant-v3'
 act_type: 'ReLU'
-n_steps: 1e7
+n_steps: 2e7
 g: 0.99
 lm: 0.95
 u_epi_ups: 0
