@@ -3,7 +3,7 @@ beta_1: 0.99
 beta_2: 0.99
 bs: 4096
 clip_eps: 0.2
-dir: data/foragax/ForagaxTwoBiomeSmall-v2-15/PPO_CB/
+dir: data/foragax/ForagaxTwoBiomeSmall-v2-15/PPO_CB//
 env_aperture_size: 15
 env_name: ForagaxTwoBiomeSmall-v2
 g: 0.99
