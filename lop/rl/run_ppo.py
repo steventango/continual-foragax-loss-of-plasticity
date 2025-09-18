@@ -84,10 +84,10 @@ def main():
     if args.device: device = args.device
     else: device = 'cuda' if torch.cuda.is_available() else 'cpu'
     cfg = yaml.safe_load(open(args.config))
-    cfg['seed'] = args.seed
-    cfg['log_path'] = cfg['dir'] + str(args.seed) + '.log'
-    cfg['ckpt_path'] = cfg['dir'] + str(args.seed) + '.pth'
-    cfg['done_path'] = cfg['dir'] + str(args.seed) + '.done'
+    stem = args.config.split('/')[-1][:-4]
+    cfg['log_path'] = cfg['dir'] + stem + '.log'
+    cfg['ckpt_path'] = cfg['dir'] + stem + '.pth'
+    cfg['done_path'] = cfg['dir'] + stem + '.done'
 
     bash_command = "mkdir -p " + cfg['dir']
     subprocess.Popen(bash_command.split(), stdout=subprocess.PIPE)
