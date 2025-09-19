@@ -12,7 +12,10 @@ def get_param_performance(path):
 
     rewards = np.array(data["rewards"])
     pos = np.array(data["pos"])
-    output_dir = path.parent / "data"
+    parts = list(path.parts)
+    parts[0] = "results"
+    parts[-1] = "data"
+    output_dir = Path(*parts)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / f"{path.stem}.npz"
     print(rewards.shape)
