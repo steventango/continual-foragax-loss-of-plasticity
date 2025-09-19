@@ -75,9 +75,10 @@ def main():
     if plot_all:
         cfg_file2 = f'../cfg/{env}/ns.yml'
         cfg_file3 = f'../cfg/{env}/l2.yml'
+        cfg_file4 = f'../cfg/{env}/redo.yml'
 
-    cfg_files = [cfg_file, cfg_file1, cfg_file2, cfg_file3]
-    colors = ['C3', 'C0', 'C1', 'C4']
+    cfg_files = [cfg_file, cfg_file1, cfg_file2, cfg_file3, cfg_file4]
+    colors = ['C3', 'C0', 'C1', 'C4', 'C2']
     cfgs = []
     for file in cfg_files:
         if file == '':  continue
