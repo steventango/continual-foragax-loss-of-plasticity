@@ -185,6 +185,9 @@ def main():
     # Load checkpoint
     if os.path.exists(cfg['ckpt_path']):
         start_step, agent.learner = load_checkpoint(cfg, device, agent.learner)
+        if start_step >= n_steps - 1:
+            print("Experiment has already finished. Exiting.")
+            return
     else:
         start_step = 0
 
